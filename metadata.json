@@ -1,0 +1,6 @@
+{
+  "name": "Águia Vendedor Virtual WhatsApp",
+  "description": "Vendedor Virtual focado exclusivamente no WhatsApp Business para atendimento, negociação de produtos, cálculo de frete e fechamento de pedidos",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

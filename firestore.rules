@@ -1,0 +1,134 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null && request.auth.uid != null;
+    }
+
+    function isOwner() {
+      return isAuthenticated() && (
+        request.auth.token.role == 'owner' || 
+        request.auth.token.email != null
+      );
+    }
+
+    // Default deny for all unmatched collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Products and Catalogs
+    match /products/{productId} {
+      allow read: if true; // Public catalog viewing for sales
+      allow write: if isOwner(); // Only authenticated owner can alter catalog
+    }
+
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    match /inventory/{inventoryId} {
+      allow read: if isOwner();
+      allow write: if isOwner();
+    }
+
+    match /product_media/{mediaId} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    // Pricing and Commercial Rules (STRICT OWNER ONLY)
+    match /pricing_rules/{ruleId} {
+      allow read: if isOwner();
+      allow write: if isOwner();
+    }
+
+    match /discount_rules/{ruleId} {
+      allow read: if isOwner();
+      allow write: if isOwner();
+    }
+
+    // Customers and Memory Isolation
+    match /customers/{customerId} {
+      allow read: if isOwner();
+      allow write: if isOwner();
+    }
+
+    match /customer_memory/{memoryId} {
+      allow read: if isOwner();
+      allow write: if isOwner();
+    }
+
+    match /conversation_memory/{memoryId} {
+      allow read: if isOwner();
+      allow write: if isOwner();
+    }
+
+    match /purchase_history/{historyId} {
+      allow read: if isOwner();
+      allow write: if isOwner();
+    }
+
+    match /preferences/{prefId} {
+      allow read: if isOwner();
+      allow write: if isOwner();
+    }
+
+    // Conversations, Messages and Negotiations
+    match /conversations/{conversationId} {
+      allow read: if isOwner();
+      allow write: if isOwner();
+    }
+
+    match /messages/{messageId} {
+      allow read: if isOwner();
+      allow write: if isOwner();
+    }
+
+    match /negotiations/{negotiationId} {
+      allow read: if isOwner();
+      allow write: if isOwner();
+    }
+
+    match /offers/{offerId} {
+      allow read: if isOwner();
+      allow write: if isOwner();
+    }
+
+    // Orders, Items and Approvals
+    match /orders/{orderId} {
+      allow read: if isOwner();
+      allow write: if isOwner();
+    }
+
+    match /order_items/{itemId} {
+      allow read: if isOwner();
+      allow write: if isOwner();
+    }
+
+    match /approvals/{approvalId} {
+      allow read: if isOwner();
+      allow write: if isOwner();
+    }
+
+    // Sales Learnings and Intelligence
+    match /sales_learnings/{learningId} {
+      allow read: if isOwner();
+      allow write: if isOwner();
+    }
+
+    // Logs and Security Audit
+    match /ai_logs/{logId} {
+      allow read: if isOwner();
+      allow write: if isOwner();
+    }
+
+    match /security_logs/{logId} {
+      allow read: if isOwner();
+      allow write: if isOwner();
+    }
+  }
+}
