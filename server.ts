@@ -598,7 +598,7 @@ async function startServer() {
   });
 
   // -------------------------------------------------------------
-  // WHATSAPP BUSINESS WEBHOOK ENDPOINT (PUBLIC & META VERIFICATION)
+  // WHATSAPP BUSINESS WEBHOOK ENDPOINT (PUBLIC & META VERIFICATION) - FIX 2026
   // -------------------------------------------------------------
   app.get("/api/whatsapp/webhook", (req, res) => {
     const mode = (req.query["hub.mode"] || req.query["mode"]) as string | undefined;
