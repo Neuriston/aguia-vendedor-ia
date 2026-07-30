@@ -1046,7 +1046,8 @@ ${productCatalogSummary}
   // -------------------------------------------------------------
   // BACKGROUND AUTOMATIC RECOVERY WORKER (REQUISITO 16)
   // -------------------------------------------------------------
-  setInterval(() => {
+  // Sem setInterval permanente: mais seguro para deploy/serverless.
+  const runAutomaticRecovery = async () => {
     try {
       if (!resilienceEngine.isBotActive) return;
 
@@ -1059,7 +1060,7 @@ ${productCatalogSummary}
 
       for (const msg of pendingMsgs) {
         if (msg.status === 'AGUARDANDO ENVIO' && msg.preparedResponse) {
-          // Retry sending prepared response via WhatsApp without calling Gemini again (Requisito 3)
+          // Preserva a resposta já preparada e não chama o Gemini novamente.
           if (!resilienceEngine.simulations.simulateWhatsAppError) {
             resilienceEngine.updateMessageStatus(msg.id, 'RESPONDIDA');
             resilienceEngine.addFailureLog({
@@ -1067,14 +1068,13 @@ ${productCatalogSummary}
               operation: 'reenvio_automatico',
               relatedId: msg.id,
               errorType: 'RECUPERADO',
-              errorMessage: `Mensagem enviada com sucesso no reenvio automático para ${msg.customerPhone}.`,
+              errorMessage: `Mensagem recuperada da fila de envio para ${msg.customerPhone}.`,
               retryCount: msg.attempts,
               finalState: 'RECUPERADO',
             });
-            console.log(`[Auto-Recovery Engine] Mensagem '${msg.id}' em AGUARDANDO ENVIO entregue com sucesso!`);
+            console.log(`[Auto-Recovery Engine] Mensagem '${msg.id}' recuperada de AGUARDANDO ENVIO.`);
           }
         } else if (msg.status === 'PENDENTE') {
-          // Retry processing pending message
           if (!resilienceEngine.simulations.simulateGeminiError) {
             resilienceEngine.updateMessageStatus(msg.id, 'RESPONDIDA');
             resilienceEngine.addFailureLog({
@@ -1082,18 +1082,21 @@ ${productCatalogSummary}
               operation: 'reprocessamento_automatico',
               relatedId: msg.id,
               errorType: 'RECUPERADO',
-              errorMessage: `Mensagem de ${msg.customerName} reprocessada com sucesso pelo Gemini.`,
+              errorMessage: `Mensagem de ${msg.customerName} recuperada da fila pendente.`,
               retryCount: msg.attempts,
               finalState: 'RECUPERADO',
             });
-            console.log(`[Auto-Recovery Engine] Mensagem PENDENTE '${msg.id}' reprocessada e respondida com sucesso!`);
+            console.log(`[Auto-Recovery Engine] Mensagem PENDENTE '${msg.id}' recuperada.`);
           }
         }
       }
     } catch (err: any) {
       console.error("[Auto-Recovery Engine Error]:", err?.message);
     }
-  }, 5000); // Runs every 5 seconds
+  };
+
+  // Executa a recuperação uma vez quando o servidor inicia.
+  void runAutomaticRecovery();
 
   // Vite middleware for development vs static serve for production
   if (process.env.NODE_ENV !== "production") {
